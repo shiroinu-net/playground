@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>バリエーション シフト可視化図</title>
+<style>
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #ffffff;
+    color: #333333;
+    padding: 40px;
+    margin: 0;
+  }
+  h1 { text-align: center; color: #111; font-weight: 300; letter-spacing: 2px; }
+  p { text-align: center; color: #555; line-height: 1.6; }
+  
+  .table-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    overflow-x: auto;
+  }
+  
+  table {
+    border-collapse: separate;
+    border-spacing: 4px;
+    margin-bottom: 50px;
+  }
+  
+  .var-label {
+    text-align: right;
+    padding-right: 20px;
+    font-weight: bold;
+    color: #555;
+    font-size: 14px;
+    letter-spacing: 1px;
+    border: none;
+    background: none;
+  }
+  
+  td {
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    vertical-align: middle;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #ffffff; /* 基本は白背景 */
+    color: #000;
+    transition: transform 0.1s, border-color 0.1s;
+  }
+  
+  td:hover {
+    transform: scale(1.1);
+    z-index: 10;
+    position: relative;
+    border-color: #000;
+  }
+  
+  .delim {
+    color: #666;
+    font-size: 20px;
+    font-weight: 300;
+    width: 25px;
+    border: none !important;
+    background: none !important;
+    box-shadow: none;
+  }
+  
+  /* aとb の背景を薄いグレーに設定 */
+  .bg-gray { background-color: #e0e0e0; }
+  
+  /* 1の背景を薄い黄色に設定 */
+  .bg-yellow { background-color: #fff9c4; }
+  
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 30px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+  }
+  .legend-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  .legend-box.white { background-color: #ffffff; }
+  .legend-box.gray { background-color: #e0e0e0; }
+  .legend-box.yellow { background-color: #fff9c4; }
+</style>
+</head>
+<body>
+
+  <h1>バリエーション循環シフト構造</h1>
+  <p>
+    固定された枠組み <code>{ | }</code> に対して、中身の文字が右へスライドしていく様子を可視化しました。<br>
+    リズムの頭となる「1」を薄い黄色にハイライトし、数字（2, 3, 4）を白背景、<br>
+    裏拍のアルファベット（a, b）を薄いグレー背景にして、基準点の移動を追いやすくしています。
+  </p>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box yellow"></div> 1 (開始基準)</div>
+    <div class="legend-item"><div class="legend-box white"></div> 2, 3, 4</div>
+    <div class="legend-item"><div class="legend-box gray"></div> a, b</div>
+  </div>
+
+  <div class="table-container">
+    <table id="varTable">
+      <!-- JavaScriptで構成を動的に生成します -->
+    </table>
+  </div>
+
+  <script>
+    const sequence = ['1', 'a', '2', 'b', '3', 'a', '4', 'b', '3', 'a', '2', 'b'];
+    const tbody = document.createElement('tbody');
+    
+    // 全12バリエーション
+    for (let v = 0; v < 12; v++) {
+      const tr = document.createElement('tr');
+      
+      // ラベル (Var 1 ~ Var 12)
+      let labelTd = document.createElement('td');
+      labelTd.className = 'var-label';
+      labelTd.textContent = 'Var ' + (v + 1);
+      tr.appendChild(labelTd);
+      
+      let pos = 0;
+      
+      // 3つの大きなグループ { ... | ... } を生成
+      for (let block = 0; block < 3; block++) {
+        // 先頭・中間の区切り文字
+        let delimStart = document.createElement('td');
+        delimStart.className = 'delim';
+        delimStart.textContent = (block === 0) ? '{' : '} {';
+        tr.appendChild(delimStart);
+        
+        // 前半4文字
+        for (let i = 0; i < 4; i++) {
+          let loopIdx = (((pos - v) % 12) + 12) % 12; // 右へシフトする計算
+          let char = sequence[loopIdx];
+          
+          let td = document.createElement('td');
+          td.textContent = char;
+          
+          // 色分けクラスを付与
+          if (char === 'a' || char === 'b') {
+            td.className = 'bg-gray';
+          } else if (char === '1') {
+            td.className = 'bg-yellow';
+          }
+          
+          tr.appendChild(td);
+          pos++;
+        }
+        
+        // パイプ区切り文字
+        let delimMid = document.createElement('td');
+        delimMid.className = 'delim';
+        delimMid.textContent = '|';
+        tr.appendChild(delimMid);
+        
+        // 後半4文字
+        for (let i = 0; i < 4; i++) {
+          let loopIdx = (((pos - v) % 12) + 12) % 12;
+          let char = sequence[loopIdx];
+          
+          let td = document.createElement('td');
+          td.textContent = char;
+          
+          // 色分けクラスを付与
+          if (char === 'a' || char === 'b') {
+            td.className = 'bg-gray';
+          } else if (char === '1') {
+            td.className = 'bg-yellow';
+          }
+          
+          tr.appendChild(td);
+          pos++;
+        }
+      }
+      
+      // 末尾の区切り文字
+      let delimEnd = document.createElement('td');
+      delimEnd.className = 'delim';
+      delimEnd.textContent = '}';
+      tr.appendChild(delimEnd);
+      
+      tbody.appendChild(tr);
+    }
+    
+    document.getElementById('varTable').appendChild(tbody);
+  </script>
+
+</body>
+</html>
