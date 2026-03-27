@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>バリエーション シフト可視化図</title>
+  <title>minimal バリエーション シフト可視化図</title>
   <style>
     body {
       font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -133,7 +133,7 @@
 
 <body>
 
-  <h1>バリエーション循環シフト構造</h1>
+  <h1>minimal バリエーションシフト構造</h1>
   <p>
     固定された枠組み <code>{ | }</code> に対して、中身の文字が左へスライドしていく様子を可視化しました。<br>
     基準音「G」を薄い黄色にハイライトし、音符（F, E, D）を白背景、<br>
@@ -237,6 +237,86 @@
     }
 
     document.getElementById('varTable').appendChild(tbody);
+  </script>
+
+  <h2 style="text-align:center; color:#111; font-weight:300; letter-spacing:2px; margin-top:60px;">逆方向シフト</h2>
+  <p style="text-align:center; color:#555; line-height:1.6;">
+    同じシーケンスを右へスライドさせたバージョンです。<br>
+    基準音「G」が逆順に移動していく様子を確認できます。
+  </p>
+
+  <div class="table-container">
+    <table id="varTableReverse">
+      <!-- JavaScriptで構成を動的に生成します -->
+    </table>
+  </div>
+
+  <script>
+    const sequence2 = ['G', 'c', 'F', 'b', 'E', 'c', 'D', 'b', 'E', 'c', 'F', 'b'];
+    const tbody2 = document.createElement('tbody');
+
+    // 全12バリエーション（右シフト）
+    for (let v = 0; v < 12; v++) {
+      const tr = document.createElement('tr');
+
+      let labelTd = document.createElement('td');
+      labelTd.className = 'var-label';
+      labelTd.textContent = 'Var ' + (v + 1);
+      tr.appendChild(labelTd);
+
+      let pos = 0;
+
+      for (let block = 0; block < 3; block++) {
+        let delimStart = document.createElement('td');
+        delimStart.className = 'delim';
+        delimStart.textContent = (block === 0) ? '{' : '} {';
+        tr.appendChild(delimStart);
+
+        // 前半4文字
+        for (let i = 0; i < 4; i++) {
+          let loopIdx = (((pos - v) % 12) + 12) % 12; // 右へシフトする計算
+          let char = sequence2[loopIdx];
+          let td = document.createElement('td');
+          td.textContent = char;
+          if (char === 'c' || char === 'b') {
+            td.className = 'bg-gray';
+          } else if (char === 'G') {
+            td.className = 'bg-yellow';
+          }
+          tr.appendChild(td);
+          pos++;
+        }
+
+        let delimMid = document.createElement('td');
+        delimMid.className = 'delim';
+        delimMid.textContent = '|';
+        tr.appendChild(delimMid);
+
+        // 後半4文字
+        for (let i = 0; i < 4; i++) {
+          let loopIdx = (((pos - v) % 12) + 12) % 12;
+          let char = sequence2[loopIdx];
+          let td = document.createElement('td');
+          td.textContent = char;
+          if (char === 'c' || char === 'b') {
+            td.className = 'bg-gray';
+          } else if (char === 'G') {
+            td.className = 'bg-yellow';
+          }
+          tr.appendChild(td);
+          pos++;
+        }
+      }
+
+      let delimEnd = document.createElement('td');
+      delimEnd.className = 'delim';
+      delimEnd.textContent = '}';
+      tr.appendChild(delimEnd);
+
+      tbody2.appendChild(tr);
+    }
+
+    document.getElementById('varTableReverse').appendChild(tbody2);
   </script>
 
 </body>
